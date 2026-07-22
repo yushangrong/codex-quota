@@ -17,7 +17,8 @@ final class QuotaEventReaderTests: XCTestCase {
                 return try Self.readFile(url, from: offset)
             }
 
-            XCTAssertEqual(try await reader.scan()?.usedPercent, 60)
+            let initialSnapshot = try await reader.scan()
+            XCTAssertEqual(initialSnapshot?.usedPercent, 60)
             gate.fail(fileNamed: newerURL.lastPathComponent)
 
             do {
@@ -77,7 +78,8 @@ final class QuotaEventReaderTests: XCTestCase {
                 directory.appendingPathComponent("missing-archive", isDirectory: true),
             ])
 
-            XCTAssertNil(try await reader.scan())
+            let result = try await reader.scan()
+            XCTAssertNil(result)
         }
     }
 
@@ -119,7 +121,8 @@ final class QuotaEventReaderTests: XCTestCase {
                 return (data, handle.offsetInFile)
             }
 
-            XCTAssertEqual(try await reader.scan()?.usedPercent, 37)
+            let snapshot = try await reader.scan()
+            XCTAssertEqual(snapshot?.usedPercent, 37)
         }
     }
 
@@ -130,7 +133,7 @@ final class QuotaEventReaderTests: XCTestCase {
             let event = makeEvent(usedPercent: 40, timestamp: "2026-07-21T07:30:27.974Z")
 
             try Data(event.dropLast(2).utf8).write(to: fileURL)
-            let partialResult = await reader.scan()
+            let partialResult = try await reader.scan()
             XCTAssertNil(partialResult)
 
             let handle = try FileHandle(forWritingTo: fileURL)
@@ -138,7 +141,7 @@ final class QuotaEventReaderTests: XCTestCase {
             try handle.write(contentsOf: Data(event.suffix(2).utf8))
             try handle.close()
 
-            let completedResult = await reader.scan()
+            let completedResult = try await reader.scan()
             XCTAssertEqual(completedResult?.usedPercent, 40)
         }
     }
@@ -148,7 +151,7 @@ final class QuotaEventReaderTests: XCTestCase {
             let fileURL = directory.appendingPathComponent("rollout.jsonl")
             let reader = QuotaEventReader(roots: [directory])
             try Data(makeEvent(usedPercent: 40, timestamp: "2026-07-21T07:30:27.974Z").utf8).write(to: fileURL)
-            let initialResult = await reader.scan()
+            let initialResult = try await reader.scan()
             XCTAssertEqual(initialResult?.usedPercent, 40)
 
             let handle = try FileHandle(forWritingTo: fileURL)
@@ -156,7 +159,7 @@ final class QuotaEventReaderTests: XCTestCase {
             try handle.write(contentsOf: Data(makeEvent(usedPercent: 41, timestamp: "2026-07-21T07:31:27.974Z").utf8))
             try handle.close()
 
-            let appendedResult = await reader.scan()
+            let appendedResult = try await reader.scan()
             XCTAssertEqual(appendedResult?.usedPercent, 41)
         }
     }
@@ -166,12 +169,12 @@ final class QuotaEventReaderTests: XCTestCase {
             let fileURL = directory.appendingPathComponent("rollout.jsonl")
             let reader = QuotaEventReader(roots: [directory])
             try Data(makeEvent(usedPercent: 60, timestamp: "2026-07-21T08:00:00.000Z").utf8).write(to: fileURL)
-            let initialResult = await reader.scan()
+            let initialResult = try await reader.scan()
             XCTAssertEqual(initialResult?.usedPercent, 60)
 
             try append(makeEvent(usedPercent: 50, timestamp: "2026-07-21T07:30:00.000Z"), to: fileURL)
 
-            let nextResult = await reader.scan()
+            let nextResult = try await reader.scan()
             XCTAssertEqual(nextResult?.usedPercent, 60)
         }
     }
@@ -183,17 +186,17 @@ final class QuotaEventReaderTests: XCTestCase {
             let initial = makeEvent(usedPercent: 40, timestamp: "2026-07-21T07:30:27.974Z")
                 + makeIgnoredEvent(timestamp: "2026-07-21T07:30:28.974Z")
             try Data(initial.utf8).write(to: fileURL)
-            let initialResult = await reader.scan()
+            let initialResult = try await reader.scan()
             XCTAssertEqual(initialResult?.usedPercent, 40)
 
             try Data(makeIgnoredEvent(timestamp: "2026-07-21T07:31:27.974Z").utf8).write(to: fileURL)
 
-            let clearedResult = await reader.scan()
+            let clearedResult = try await reader.scan()
             XCTAssertNil(clearedResult)
 
             try append(makeEvent(usedPercent: 41, timestamp: "2026-07-21T07:32:27.974Z"), to: fileURL)
 
-            let truncatedResult = await reader.scan()
+            let truncatedResult = try await reader.scan()
             XCTAssertEqual(truncatedResult?.usedPercent, 41)
         }
     }
@@ -204,7 +207,7 @@ final class QuotaEventReaderTests: XCTestCase {
             let replacementURL = directory.appendingPathComponent("replacement.jsonl")
             let reader = QuotaEventReader(roots: [directory])
             try Data(makeEvent(usedPercent: 40, timestamp: "2026-07-21T07:30:27.974Z").utf8).write(to: fileURL)
-            let initialResult = await reader.scan()
+            let initialResult = try await reader.scan()
             XCTAssertEqual(initialResult?.usedPercent, 40)
 
             let replacement = makeEvent(usedPercent: 42, timestamp: "2026-07-21T07:32:27.974Z")
@@ -212,7 +215,7 @@ final class QuotaEventReaderTests: XCTestCase {
             try Data(replacement.utf8).write(to: replacementURL)
             _ = try FileManager.default.replaceItemAt(fileURL, withItemAt: replacementURL)
 
-            let replacementResult = await reader.scan()
+            let replacementResult = try await reader.scan()
             XCTAssertEqual(replacementResult?.usedPercent, 42)
         }
     }
@@ -228,7 +231,7 @@ final class QuotaEventReaderTests: XCTestCase {
             try Data(makeEvent(usedPercent: 40, timestamp: "2026-07-21T07:30:27.974Z").utf8).write(to: olderURL)
             try Data(makeEvent(usedPercent: 41, timestamp: "2026-07-21T07:31:27.974Z").utf8).write(to: newerURL)
 
-            let newestResult = await reader.scan()
+            let newestResult = try await reader.scan()
             XCTAssertEqual(newestResult?.usedPercent, 41)
         }
     }
@@ -240,12 +243,12 @@ final class QuotaEventReaderTests: XCTestCase {
             let reader = QuotaEventReader(roots: [directory])
             try Data(makeEvent(usedPercent: 60, timestamp: "2026-07-21T08:00:00.000Z").utf8).write(to: newerURL)
             try Data(makeEvent(usedPercent: 40, timestamp: "2026-07-21T07:00:00.000Z").utf8).write(to: olderURL)
-            let initialResult = await reader.scan()
+            let initialResult = try await reader.scan()
             XCTAssertEqual(initialResult?.usedPercent, 60)
 
             try append(makeEvent(usedPercent: 50, timestamp: "2026-07-21T07:30:00.000Z"), to: olderURL)
 
-            let nextResult = await reader.scan()
+            let nextResult = try await reader.scan()
             XCTAssertEqual(nextResult?.usedPercent, 60)
         }
     }
@@ -257,12 +260,12 @@ final class QuotaEventReaderTests: XCTestCase {
             let reader = QuotaEventReader(roots: [directory])
             try Data(makeEvent(usedPercent: 60, timestamp: "2026-07-21T08:00:00.000Z").utf8).write(to: newerURL)
             try Data(makeEvent(usedPercent: 40, timestamp: "2026-07-21T07:00:00.000Z").utf8).write(to: olderURL)
-            let initialResult = await reader.scan()
+            let initialResult = try await reader.scan()
             XCTAssertEqual(initialResult?.usedPercent, 60)
 
             try FileManager.default.removeItem(at: newerURL)
 
-            let remainingResult = await reader.scan()
+            let remainingResult = try await reader.scan()
             XCTAssertEqual(remainingResult?.usedPercent, 40)
         }
     }
@@ -279,7 +282,7 @@ final class QuotaEventReaderTests: XCTestCase {
             try Data(makeEvent(usedPercent: 40, timestamp: "2026-07-21T08:00:00.000Z").utf8).write(to: jsonlURL)
             try Data(makeEvent(usedPercent: 99, timestamp: "2026-07-21T09:00:00.000Z").utf8).write(to: ignoredURL)
 
-            let scannedSnapshot = await reader.scan()
+            let scannedSnapshot = try await reader.scan()
             let snapshot = try XCTUnwrap(scannedSnapshot)
             XCTAssertEqual(snapshot.usedPercent, 40)
             XCTAssertFalse(snapshot.sourceFingerprint.contains(privateDirectoryName))
@@ -313,7 +316,7 @@ final class QuotaEventReaderTests: XCTestCase {
         }
     }
 
-    private func withTemporaryDirectory(_ body: (URL) async throws -> Void) async rethrows {
+    private func withTemporaryDirectory(_ body: (URL) async throws -> Void) async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
