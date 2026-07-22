@@ -73,7 +73,7 @@ final class PollingDriverTests: XCTestCase {
             successHandler: {},
             failureHandler: { _, _ in }
         )
-        weak let weakDriver = driver
+        weak var weakDriver = driver
 
         driver?.start()
         await provider.waitUntilStarted(1)
