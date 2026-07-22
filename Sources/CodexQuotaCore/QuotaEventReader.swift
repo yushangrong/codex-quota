@@ -124,7 +124,9 @@ public actor QuotaEventReader {
             let values: URLResourceValues
             do {
                 values = try root.resourceValues(forKeys: [.isDirectoryKey, .isRegularFileKey])
-            } catch let error as CocoaError where error.code == .fileNoSuchFile {
+            } catch let error as CocoaError where
+                error.code == .fileNoSuchFile || error.code == .fileReadNoSuchFile
+            {
                 completelyInventoriedRoots.insert(root)
                 continue
             } catch {
