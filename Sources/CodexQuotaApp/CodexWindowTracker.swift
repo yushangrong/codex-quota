@@ -80,34 +80,6 @@ final class CodexWindowTracker {
     private var hasEmitted = false
     private var lastSnapshot: CodexWindowSnapshot?
 
-    isolated deinit {
-        pendingRefreshTask?.cancel()
-        initialSampleTimer?.invalidate()
-        safetySampleTimer?.invalidate()
-        if let observer {
-            if let observedApplication {
-                AXObserverRemoveNotification(
-                    observer,
-                    observedApplication,
-                    kAXFocusedWindowChangedNotification as CFString
-                )
-            }
-            if let observedWindow {
-                for notification in [
-                    kAXMovedNotification,
-                    kAXResizedNotification,
-                    kAXWindowMiniaturizedNotification,
-                    kAXWindowDeminiaturizedNotification,
-                    kAXUIElementDestroyedNotification,
-                ] {
-                    AXObserverRemoveNotification(observer, observedWindow, notification as CFString)
-                }
-            }
-            CFRunLoopRemoveSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .commonModes)
-        }
-        observerContext?.release()
-    }
-
     func start() {
         guard !refreshGate.isRunning else { return }
         refreshGate.start()
