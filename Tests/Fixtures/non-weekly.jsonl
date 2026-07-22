@@ -1,0 +1,1 @@
+{"timestamp":"2026-07-21T07:30:27.974Z","type":"event_msg","payload":{"message":"PRIVATE_TEXT_MUST_NOT_SURVIVE","rate_limits":{"limit_id":"codex","primary":{"used_percent":37,"window_minutes":300,"resets_at":1800259200},"secondary":null}}}

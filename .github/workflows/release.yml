@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      CLANG_MODULE_CACHE_PATH: ${{ runner.temp }}/clang-module-cache
+      SWIFTPM_MODULECACHE_OVERRIDE: ${{ runner.temp }}/swiftpm-module-cache
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare writable module caches
+        run: mkdir -p "$CLANG_MODULE_CACHE_PATH" "$SWIFTPM_MODULECACHE_OVERRIDE"
+
+      - name: Run Swift tests
+        run: swift test
+
+      - name: Check release build scripts
+        run: zsh Tests/Scripts/build-scripts-test.sh
+
+      - name: Check public repository policy
+        run: zsh Tests/Scripts/repository-policy-test.sh
+
+      - name: Build and verify tagged release
+        shell: zsh {0}
+        run: |
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          [[ "$tag" == v* ]] || { print -u2 -- "release tag must start with v"; exit 1; }
+          version="${GITHUB_REF_NAME#v}"
+          [[ "$version" =~ '^[0-9]+(\.[0-9]+){0,2}$' ]] || { print -u2 -- "invalid release version: $version"; exit 1; }
+          [[ "$tag" == "v$version" ]] || { print -u2 -- "release tag was not normalized: $tag"; exit 1; }
+          zsh scripts/build-dmg.sh "$version"
+          zsh scripts/verify-release.sh "dist/Codex Quota.app"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.dmg
+            dist/*.sha256

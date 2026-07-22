@@ -1,0 +1,7 @@
+.worktrees/
+.superpowers/
+.build/
+dist/
+.DS_Store
+*.p12
+*.mobileprovision
