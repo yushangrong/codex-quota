@@ -13,15 +13,15 @@ jobs:
   test:
     runs-on: macos-15
     timeout-minutes: 20
-    env:
-      CLANG_MODULE_CACHE_PATH: ${{ runner.temp }}/clang-module-cache
-      SWIFTPM_MODULECACHE_OVERRIDE: ${{ runner.temp }}/swiftpm-module-cache
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Prepare writable module caches
-        run: mkdir -p "$CLANG_MODULE_CACHE_PATH" "$SWIFTPM_MODULECACHE_OVERRIDE"
+        run: |
+          echo "CLANG_MODULE_CACHE_PATH=$RUNNER_TEMP/clang-module-cache" >> "$GITHUB_ENV"
+          echo "SWIFTPM_MODULECACHE_OVERRIDE=$RUNNER_TEMP/swiftpm-module-cache" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/clang-module-cache" "$RUNNER_TEMP/swiftpm-module-cache"
 
       - name: Run Swift tests
         run: swift test

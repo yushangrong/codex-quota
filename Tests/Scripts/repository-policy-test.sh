@@ -80,6 +80,14 @@ def workflow_steps(job, file)
   steps
 end
 
+def assert_no_job_runner_context(job, file)
+  env = job["env"]
+  return unless env.is_a?(Hash)
+
+  unsupported = env.values.grep(String).select { |value| value.include?("${{ runner.") }
+  policy_assert(unsupported.empty?, "#{file} job env cannot use the runner context")
+end
+
 def assert_no_job_permissions(workflow, file)
   jobs = workflow["jobs"]
   policy_assert(jobs.is_a?(Hash), "#{file} must define jobs")
@@ -146,6 +154,7 @@ policy_assert(ci["permissions"] == { "contents" => "read" }, "#{ci_file} root pe
 assert_no_job_permissions(ci, ci_file)
 ci_job = workflow_job(ci, "test", ci_file)
 policy_assert(ci_job["runs-on"] == "macos-15", "#{ci_file} test job must run on macos-15")
+assert_no_job_runner_context(ci_job, ci_file)
 ci_steps = workflow_steps(ci_job, ci_file)
 ci_checkout = require_position(ci_steps, :uses, "actions/checkout@v4", ci_file)
 ci_swift = require_position(ci_steps, :run, "swift test", ci_file)
@@ -162,6 +171,7 @@ policy_assert(release["permissions"] == { "contents" => "write" }, "#{release_fi
 assert_no_job_permissions(release, release_file)
 release_job = workflow_job(release, "release", release_file)
 policy_assert(release_job["runs-on"] == "macos-15", "#{release_file} release job must run on macos-15")
+assert_no_job_runner_context(release_job, release_file)
 release_steps = workflow_steps(release_job, release_file)
 release_checkout = require_position(release_steps, :uses, "actions/checkout@v4", release_file)
 release_swift = require_position(release_steps, :run, "swift test", release_file)
