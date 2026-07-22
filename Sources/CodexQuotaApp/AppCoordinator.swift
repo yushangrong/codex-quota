@@ -38,11 +38,6 @@ final class PollingDriver {
         self.failureHandler = failureHandler
     }
 
-    isolated deinit {
-        pollingState.stop()
-        pollingTask?.cancel()
-    }
-
     func start() {
         guard pollingTask == nil else { return }
 
@@ -201,10 +196,6 @@ final class AppCoordinator {
         )
         self.scanProvider = scanProvider ?? { try await reader.scan() }
         self.cacheSaver = cacheSaver ?? { try cache.save($0) }
-    }
-
-    isolated deinit {
-        stop()
     }
 
     func start() {
