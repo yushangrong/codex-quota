@@ -4,6 +4,12 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using Brush = System.Windows.Media.Brush;
+using Brushes = System.Windows.Media.Brushes;
+using Color = System.Windows.Media.Color;
+using Orientation = System.Windows.Controls.Orientation;
+using Size = System.Windows.Size;
+using Window = System.Windows.Window;
 
 namespace CodexQuota.Windows;
 
