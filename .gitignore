@@ -5,3 +5,5 @@ dist/
 .DS_Store
 *.p12
 *.mobileprovision
+bin/
+obj/

@@ -50,3 +50,36 @@ jobs:
           files: |
             dist/*.dmg
             dist/*.sha256
+
+  windows-release:
+    needs: release
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Run Windows quota core tests
+        run: dotnet run --project windows/CodexQuota.Windows.Tests/CodexQuota.Windows.Tests.csproj --configuration Release -- Tests/Fixtures
+
+      - name: Build tagged Windows release
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          if (-not $tag.StartsWith('v')) { throw 'release tag must start with v' }
+          $version = $tag.Substring(1)
+          if ($version -notmatch '^[0-9]+(\.[0-9]+){0,2}$') { throw "invalid release version: $version" }
+          if ($tag -ne "v$version") { throw "release tag was not normalized: $tag" }
+          pwsh -File scripts/build-windows.ps1 -Version $version
+
+      - name: Publish Windows assets
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.zip
+            dist/*.sha256

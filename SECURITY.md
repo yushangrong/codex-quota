@@ -8,7 +8,7 @@
 
 请不要在公开 Issue、讨论区、日志或截图中披露安全漏洞、个人数据、Codex 会话内容或利用细节。
 
-请在仓库的 **Security** 页面选择 **Report a vulnerability**，通过 GitHub Private Vulnerability Reporting 私下报告。报告应包含受影响版本、macOS 版本、复现步骤、影响范围和建议缓解方式，但请先移除提示词、回复、访问令牌和其他个人数据。
+请在仓库的 **Security** 页面选择 **Report a vulnerability**，通过 GitHub Private Vulnerability Reporting 私下报告。报告应包含受影响版本、操作系统版本、复现步骤、影响范围和建议缓解方式，但请先移除提示词、回复、访问令牌和其他个人数据。
 
 如果仓库暂时没有显示私人报告入口，请只创建一条不含漏洞细节的 Issue，请求维护者提供私下联系方式。维护者确认安全渠道之前，不要公开复现材料。
 
