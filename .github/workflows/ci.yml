@@ -31,3 +31,21 @@ jobs:
 
       - name: Check public repository policy
         run: zsh Tests/Scripts/repository-policy-test.sh
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build Windows app
+        run: dotnet build windows/CodexQuota.Windows/CodexQuota.Windows.csproj --configuration Release
+
+      - name: Run Windows quota core tests
+        run: dotnet run --project windows/CodexQuota.Windows.Tests/CodexQuota.Windows.Tests.csproj --configuration Release -- Tests/Fixtures

@@ -162,6 +162,16 @@ ci_build_policy = require_position(ci_steps, :run, "zsh Tests/Scripts/build-scri
 ci_repo_policy = require_position(ci_steps, :run, "zsh Tests/Scripts/repository-policy-test.sh", ci_file)
 assert_order(ci_file, ci_checkout, ci_swift, ci_build_policy, ci_repo_policy)
 
+ci_windows_job = workflow_job(ci, "windows", ci_file)
+policy_assert(ci_windows_job["runs-on"] == "windows-latest", "#{ci_file} windows job must run on windows-latest")
+assert_no_job_runner_context(ci_windows_job, ci_file)
+ci_windows_steps = workflow_steps(ci_windows_job, ci_file)
+ci_windows_checkout = require_position(ci_windows_steps, :uses, "actions/checkout@v4", ci_file)
+ci_windows_dotnet = require_position(ci_windows_steps, :uses, "actions/setup-dotnet@v4", ci_file)
+ci_windows_build = require_position(ci_windows_steps, :run, "dotnet build windows/CodexQuota.Windows/CodexQuota.Windows.csproj --configuration Release", ci_file)
+ci_windows_test = require_position(ci_windows_steps, :run, "dotnet run --project windows/CodexQuota.Windows.Tests/CodexQuota.Windows.Tests.csproj --configuration Release -- Tests/Fixtures", ci_file)
+assert_order(ci_file, ci_windows_checkout, ci_windows_dotnet, ci_windows_build, ci_windows_test)
+
 release = load_workflow(release_file)
 release_triggers = workflow_triggers(release, release_file)
 policy_assert(release_triggers.keys == ["push"], "#{release_file} must trigger only on push")
@@ -216,6 +226,31 @@ policy_assert(publish_with.is_a?(Hash), "#{release_file} publish step must defin
 policy_assert(publish_with["fail_on_unmatched_files"] == true, "#{release_file} must fail on unmatched release assets")
 assets = publish_with["files"].to_s.lines.map(&:strip).reject(&:empty?)
 policy_assert(assets == ["dist/*.dmg", "dist/*.sha256"], "#{release_file} must upload only DMG and SHA-256 assets")
+
+windows_release_job = workflow_job(release, "windows-release", release_file)
+policy_assert(windows_release_job["needs"] == "release", "#{release_file} windows-release must wait for the macOS release")
+policy_assert(windows_release_job["runs-on"] == "windows-latest", "#{release_file} windows-release job must run on windows-latest")
+assert_no_job_runner_context(windows_release_job, release_file)
+windows_release_steps = workflow_steps(windows_release_job, release_file)
+windows_release_checkout = require_position(windows_release_steps, :uses, "actions/checkout@v4", release_file)
+windows_release_dotnet = require_position(windows_release_steps, :uses, "actions/setup-dotnet@v4", release_file)
+windows_release_test = require_position(windows_release_steps, :run, "dotnet run --project windows/CodexQuota.Windows.Tests/CodexQuota.Windows.Tests.csproj --configuration Release -- Tests/Fixtures", release_file)
+windows_release_build = require_position(windows_release_steps, :run, "pwsh -File scripts/build-windows.ps1 -Version $version", release_file)
+windows_release_publish = require_position(windows_release_steps, :uses, "softprops/action-gh-release@v2", release_file)
+assert_order(
+  release_file,
+  windows_release_checkout,
+  windows_release_dotnet,
+  windows_release_test,
+  windows_release_build,
+  windows_release_publish
+)
+windows_publish_step = windows_release_steps[windows_release_publish.first]
+windows_publish_with = windows_publish_step["with"]
+policy_assert(windows_publish_with.is_a?(Hash), "#{release_file} Windows publish step must define with")
+policy_assert(windows_publish_with["fail_on_unmatched_files"] == true, "#{release_file} Windows publish must fail on unmatched assets")
+windows_assets = windows_publish_with["files"].to_s.lines.map(&:strip).reject(&:empty?)
+policy_assert(windows_assets == ["dist/*.zip", "dist/*.sha256"], "#{release_file} must upload only Windows ZIP and SHA-256 assets from windows-release")
 RUBY
 }
 
@@ -339,6 +374,10 @@ require_text "$readme" "未经过 Apple 公证"
 require_text "$readme" "右键"
 require_text "$readme" "打开"
 require_text "$readme" "macOS 13"
+require_text "$readme" "Windows 10 2004"
+require_text "$readme" "Codex-Quota-vX.Y.Z-Windows-x64.zip"
+require_text "$readme" '%LOCALAPPDATA%\CodexQuota\snapshot.json'
+require_text "$readme" "dotnet build windows/CodexQuota.Windows/CodexQuota.Windows.csproj"
 require_text "$readme" "辅助功能权限仅用于读取 Codex 窗口位置"
 require_text "$readme" '~/.codex/sessions'
 require_text "$readme" '~/.codex/archived_sessions'
@@ -360,7 +399,7 @@ require_text "$security" "私下报告"
 require_text "$preview" "界面预览"
 require_text "$preview" "Codex 63% · 3天后重置"
 
-for ignored in ".worktrees/" ".superpowers/" ".build/" "dist/" ".DS_Store" "*.p12" "*.mobileprovision"; do
+for ignored in ".worktrees/" ".superpowers/" ".build/" "dist/" ".DS_Store" "*.p12" "*.mobileprovision" "bin/" "obj/"; do
     require_text "$gitignore" "$ignored"
 done
 
