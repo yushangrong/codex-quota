@@ -6,11 +6,7 @@ struct MenuBarActions {
     let refreshState: () -> Void
     let toggleOverlay: () -> Void
     let toggleLoginItem: () -> Void
-    let moveLeft: () -> Void
-    let moveRight: () -> Void
-    let moveUp: () -> Void
-    let moveDown: () -> Void
-    let resetPosition: () -> Void
+    let showPositionAdjustment: () -> Void
     let selectAppearance: (AppAppearance) -> Void
     let openAccessibilitySettings: () -> Void
     let showAbout: () -> Void
@@ -44,8 +40,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         menu.addItem(.separator())
         menu.addItem(configure(overlayItem, action: #selector(toggleOverlay)))
         menu.addItem(configure(loginItem, action: #selector(toggleLoginItem)))
-        menu.addItem(positionMenuItem())
-        menu.addItem(actionItem("恢复默认位置", action: #selector(resetPosition)))
+        menu.addItem(actionItem("调整位置…", action: #selector(showPositionAdjustment)))
         menu.addItem(appearanceMenuItem())
         menu.addItem(.separator())
         menu.addItem(actionItem("打开辅助功能设置", action: #selector(openAccessibilitySettings)))
@@ -90,17 +85,6 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         actions.refreshState()
     }
 
-    private func positionMenuItem() -> NSMenuItem {
-        let item = NSMenuItem(title: "调整位置", action: nil, keyEquivalent: "")
-        let submenu = NSMenu()
-        submenu.addItem(actionItem("左移 2 pt", action: #selector(moveLeft)))
-        submenu.addItem(actionItem("右移 2 pt", action: #selector(moveRight)))
-        submenu.addItem(actionItem("上移 2 pt", action: #selector(moveUp)))
-        submenu.addItem(actionItem("下移 2 pt", action: #selector(moveDown)))
-        item.submenu = submenu
-        return item
-    }
-
     private func appearanceMenuItem() -> NSMenuItem {
         let item = NSMenuItem(title: "外观", action: nil, keyEquivalent: "")
         let submenu = NSMenu()
@@ -131,11 +115,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     @objc private func toggleOverlay() { actions.toggleOverlay() }
     @objc private func toggleLoginItem() { actions.toggleLoginItem() }
-    @objc private func moveLeft() { actions.moveLeft() }
-    @objc private func moveRight() { actions.moveRight() }
-    @objc private func moveUp() { actions.moveUp() }
-    @objc private func moveDown() { actions.moveDown() }
-    @objc private func resetPosition() { actions.resetPosition() }
+    @objc private func showPositionAdjustment() { actions.showPositionAdjustment() }
     @objc private func openAccessibilitySettings() { actions.openAccessibilitySettings() }
     @objc private func showAbout() { actions.showAbout() }
     @objc private func quit() { actions.quit() }
