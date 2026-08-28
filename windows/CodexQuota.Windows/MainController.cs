@@ -16,6 +16,7 @@ public sealed class MainController : IDisposable
     private readonly StartupController startup = new();
     private readonly CodexWindowTracker windowTracker = new();
     private readonly OverlayWindow overlay = new();
+    private readonly PositionAdjustmentWindow positionAdjustment;
     private readonly TrayController tray;
     private readonly DispatcherTimer windowTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private readonly DispatcherTimer quotaTimer = new() { Interval = TimeSpan.FromSeconds(5) };
@@ -44,15 +45,15 @@ public sealed class MainController : IDisposable
         ]);
         cache = new QuotaCache(Path.Combine(localRoot, "snapshot.json"));
         logger = new DiagnosticLogger(Path.Combine(localRoot, "app.log"));
+        positionAdjustment = new PositionAdjustmentWindow(
+            AdjustPosition,
+            ResetPosition,
+            () => (settings.HorizontalOffset, settings.VerticalOffset));
         tray = new TrayController(new TrayActions(
             Render,
             ToggleOverlay,
             ToggleStartup,
-            () => AdjustPosition(-2, 0),
-            () => AdjustPosition(2, 0),
-            () => AdjustPosition(0, 2),
-            () => AdjustPosition(0, -2),
-            ResetPosition,
+            positionAdjustment.Present,
             SelectAppearance,
             ShowAbout,
             () => Application.Current.Shutdown()));
@@ -87,6 +88,7 @@ public sealed class MainController : IDisposable
         windowTimer.Stop();
         quotaTimer.Stop();
         tray.Dispose();
+        positionAdjustment.ClosePermanently();
         overlay.Close();
     }
 

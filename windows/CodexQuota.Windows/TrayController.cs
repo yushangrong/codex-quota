@@ -7,11 +7,7 @@ public sealed record TrayActions(
     Action Refresh,
     Action ToggleOverlay,
     Action ToggleStartup,
-    Action MoveLeft,
-    Action MoveRight,
-    Action MoveUp,
-    Action MoveDown,
-    Action ResetPosition,
+    Action ShowPositionAdjustment,
     Action<AppAppearance> SelectAppearance,
     Action ShowAbout,
     Action Quit);
@@ -34,12 +30,6 @@ public sealed class TrayController : IDisposable
         overlay.Click += (_, _) => actions.ToggleOverlay();
         startup.Click += (_, _) => actions.ToggleStartup();
 
-        var position = new Forms.ToolStripMenuItem("调整位置");
-        position.DropDownItems.Add(Item("左移 2 px", actions.MoveLeft));
-        position.DropDownItems.Add(Item("右移 2 px", actions.MoveRight));
-        position.DropDownItems.Add(Item("上移 2 px", actions.MoveUp));
-        position.DropDownItems.Add(Item("下移 2 px", actions.MoveDown));
-
         var appearance = new Forms.ToolStripMenuItem("外观");
         foreach (var (value, title) in new[]
                  {
@@ -58,8 +48,7 @@ public sealed class TrayController : IDisposable
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(overlay);
         menu.Items.Add(startup);
-        menu.Items.Add(position);
-        menu.Items.Add(Item("恢复默认位置", actions.ResetPosition));
+        menu.Items.Add(Item("调整位置…", actions.ShowPositionAdjustment));
         menu.Items.Add(appearance);
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(Item("关于 Codex Quota", actions.ShowAbout));

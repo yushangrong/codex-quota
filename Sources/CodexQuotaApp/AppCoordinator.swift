@@ -149,6 +149,21 @@ final class AppCoordinator {
     private let windowTracker: CodexWindowTracker
     private let overlayPanel: OverlayPanelController
     private lazy var menuBar = MenuBarController(actions: makeMenuActions())
+    private lazy var positionAdjustment = PositionAdjustmentController(
+        adjust: { [weak self] horizontal, vertical in
+            self?.adjustPosition(horizontal: horizontal, vertical: vertical)
+        },
+        reset: { [weak self] in
+            self?.settings.resetPosition()
+            self?.render()
+        },
+        offsets: { [weak self] in
+            (
+                horizontal: self?.settings.horizontalOffset ?? 0,
+                vertical: self?.settings.verticalOffset ?? 0
+            )
+        }
+    )
     private lazy var pollingDriver = PollingDriver(
         scanProvider: scanProvider,
         cacheSaver: cacheSaver,
@@ -221,6 +236,7 @@ final class AppCoordinator {
         pollingDriver.stop()
         windowTracker.onChange = nil
         windowTracker.stop()
+        positionAdjustment.dismiss()
         overlayPanel.render(state: display, anchor: nil)
     }
 
@@ -277,14 +293,7 @@ final class AppCoordinator {
                 self.render()
             },
             toggleLoginItem: { [weak self] in self?.toggleLoginItem() },
-            moveLeft: { [weak self] in self?.adjustPosition(horizontal: -2, vertical: 0) },
-            moveRight: { [weak self] in self?.adjustPosition(horizontal: 2, vertical: 0) },
-            moveUp: { [weak self] in self?.adjustPosition(horizontal: 0, vertical: 2) },
-            moveDown: { [weak self] in self?.adjustPosition(horizontal: 0, vertical: -2) },
-            resetPosition: { [weak self] in
-                self?.settings.resetPosition()
-                self?.render()
-            },
+            showPositionAdjustment: { [weak self] in self?.positionAdjustment.present() },
             selectAppearance: { [weak self] appearance in
                 self?.settings.appearance = appearance
                 self?.render()
