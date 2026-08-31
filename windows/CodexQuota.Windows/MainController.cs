@@ -235,7 +235,7 @@ public sealed class MainController : IDisposable
 
     private static void ShowAbout()
     {
-        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.1.0";
+        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.2.0";
         MessageBox.Show(
             $"Codex Quota {version}\n\nWindows 原生版本\nGitHub: github.com/yushangrong/codex-quota\n非 OpenAI 官方项目",
             "关于 Codex Quota",

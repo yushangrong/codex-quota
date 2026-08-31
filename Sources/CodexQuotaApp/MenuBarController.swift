@@ -69,7 +69,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     func presentAbout() {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
-            ?? "0.1.0"
+            ?? "0.2.0"
         let alert = NSAlert()
         alert.messageText = "Codex Quota \(version)"
         alert.informativeText = "GitHub: github.com/yushangrong/codex-quota\n非 OpenAI 官方项目"

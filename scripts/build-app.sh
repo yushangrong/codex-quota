@@ -2,7 +2,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-version="${1:-0.1.0}"
+version="${1:-0.2.0}"
 dist="$root/dist"
 app="$dist/Codex Quota.app"
 

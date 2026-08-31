@@ -26,18 +26,18 @@ Codex Quota 是社区维护的非 OpenAI 官方项目。它不会修改、替换
 
 macOS 打开 DMG 后，把 **Codex Quota.app** 拖入“应用程序”。Windows 解压 ZIP 后直接运行 `CodexQuota.exe`；Windows 发布包是 self-contained 单文件，不需要预装 .NET。
 
-以 v0.1.0 为例，在下载目录先校验文件完整性：
+以 v0.2.0 为例，在下载目录先校验文件完整性：
 
 ```sh
-shasum -a 256 -c Codex-Quota-v0.1.0-macOS-universal.dmg.sha256
+shasum -a 256 -c Codex-Quota-v0.2.0-macOS-universal.dmg.sha256
 ```
 
-看到 `Codex-Quota-v0.1.0-macOS-universal.dmg: OK` 后再打开 DMG。其他版本请把命令中的版本号替换为实际下载版本。
+看到 `Codex-Quota-v0.2.0-macOS-universal.dmg: OK` 后再打开 DMG。其他版本请把命令中的版本号替换为实际下载版本。
 
 Windows x64 可在 PowerShell 中校验：
 
 ```powershell
-$file = 'Codex-Quota-v0.1.0-Windows-x64.zip'
+$file = 'Codex-Quota-v0.2.0-Windows-x64.zip'
 $expected = (Get-Content "$file.sha256").Split()[0]
 $actual = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLowerInvariant()
 if ($actual -ne $expected) { throw 'SHA-256 校验失败' }
@@ -171,13 +171,13 @@ Windows 开发需要 .NET 8 SDK，并在 Windows 10/11 上运行：
 ```powershell
 dotnet build windows/CodexQuota.Windows/CodexQuota.Windows.csproj --configuration Release
 dotnet run --project windows/CodexQuota.Windows.Tests/CodexQuota.Windows.Tests.csproj --configuration Release -- Tests/Fixtures
-pwsh -File scripts/build-windows.ps1 -Version 0.1.0
+pwsh -File scripts/build-windows.ps1 -Version 0.2.0
 ```
 
 构建 Universal DMG：
 
 ```sh
-zsh scripts/build-dmg.sh 0.1.0
+zsh scripts/build-dmg.sh 0.2.0
 zsh scripts/verify-release.sh "dist/Codex Quota.app"
 ```
 

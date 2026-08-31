@@ -390,7 +390,7 @@ require_text "$readme" "不发起网络请求"
 require_text "$readme" "登录项"
 require_text "$readme" "Application Support"
 require_text "$readme" "Logs"
-require_text "$readme" "shasum -a 256 -c Codex-Quota-v0.1.0-macOS-universal.dmg.sha256"
+require_text "$readme" "shasum -a 256 -c Codex-Quota-v0.2.0-macOS-universal.dmg.sha256"
 
 require_text "$license" "MIT License"
 require_text "$license" "Permission is hereby granted, free of charge"
