@@ -9,7 +9,31 @@ final class QuotaFormatterTests: XCTestCase {
         let display = QuotaFormatter.display(snapshot: value, now: now)
         XCTAssertEqual(display.remainingPercent, 63)
         XCTAssertEqual(display.level, .normal)
-        XCTAssertEqual(display.pillText, "Codex 63% · 3天后重置")
+        XCTAssertEqual(display.pillText, "Codex 63% · 3天")
+        XCTAssertEqual(display.compactText, "63% · 约3天")
+    }
+
+    func testFullCountdownIncludesHoursWhileCompactCountdownRoundsDays() {
+        let value = QuotaSnapshot(
+            usedPercent: 47,
+            windowMinutes: 10_080,
+            resetsAt: now.addingTimeInterval(4 * 86_400 + 19 * 3_600),
+            observedAt: now,
+            sourceFingerprint: "fixture"
+        )
+
+        let display = QuotaFormatter.display(snapshot: value, now: now)
+
+        XCTAssertEqual(display.pillText, "Codex 53% · 4天19小时")
+        XCTAssertEqual(display.compactText, "53% · 约5天")
+        XCTAssertEqual(
+            QuotaFormatter.compactCountdown(to: now.addingTimeInterval(4 * 86_400 + 11 * 3_600), now: now),
+            "约4天"
+        )
+        XCTAssertEqual(
+            QuotaFormatter.compactCountdown(to: now.addingTimeInterval(4 * 86_400 + 12 * 3_600), now: now),
+            "约5天"
+        )
     }
 
     func testThresholdsCountdownAndExpiredWindow() {

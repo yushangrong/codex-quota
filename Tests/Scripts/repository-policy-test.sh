@@ -397,7 +397,7 @@ require_text "$license" "Permission is hereby granted, free of charge"
 require_text "$security" "安全漏洞"
 require_text "$security" "私下报告"
 require_text "$preview" "界面预览"
-require_text "$preview" "Codex 63% · 3天后重置"
+require_text "$preview" "Codex 63% · 3天"
 
 for ignored in ".worktrees/" ".superpowers/" ".build/" "dist/" ".DS_Store" "*.p12" "*.mobileprovision" "bin/" "obj/"; do
     require_text "$gitignore" "$ignored"

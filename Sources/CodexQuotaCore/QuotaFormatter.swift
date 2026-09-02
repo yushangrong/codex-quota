@@ -15,12 +15,14 @@ public enum QuotaFormatter {
 
         let remaining = min(100, max(0, Int((100 - snapshot.usedPercent).rounded())))
         let reset = countdown(to: snapshot.resetsAt, now: now)
+        let detailedReset = reset.replacingOccurrences(of: "后重置", with: "")
+        let compactReset = compactCountdown(to: snapshot.resetsAt, now: now)
         let stale = now.timeIntervalSince(snapshot.observedAt) > 1_800
         return .init(
             remainingPercent: remaining,
             level: .init(remainingPercent: remaining),
-            pillText: "Codex \(remaining)% · \(reset)",
-            compactText: "\(remaining)% · \(reset.replacingOccurrences(of: "后重置", with: ""))",
+            pillText: "Codex \(remaining)% · \(detailedReset)",
+            compactText: "\(remaining)% · \(compactReset)",
             tooltipText: "已用 \(Int(snapshot.usedPercent.rounded()))% · \(snapshot.resetsAt.formatted(date: .abbreviated, time: .shortened)) 重置" + (stale ? " · 数据可能已过期" : ""),
             isStale: stale
         )
@@ -28,9 +30,25 @@ public enum QuotaFormatter {
 
     public static func countdown(to reset: Date, now: Date) -> String {
         let seconds = max(0, reset.timeIntervalSince(now))
-        if seconds >= 172_800 { return "\(Int(seconds / 86_400))天后重置" }
-        if seconds >= 86_400 { return "1天后重置" }
+        if seconds >= 86_400 {
+            let wholeHours = Int(seconds / 3_600)
+            let days = wholeHours / 24
+            let hours = wholeHours % 24
+            return hours == 0
+                ? "\(days)天后重置"
+                : "\(days)天\(hours)小时后重置"
+        }
         if seconds >= 3_600 { return "\(Int(seconds / 3_600))小时后重置" }
         return "\(max(1, Int(seconds / 60)))分钟后重置"
+    }
+
+    public static func compactCountdown(to reset: Date, now: Date) -> String {
+        let seconds = max(0, reset.timeIntervalSince(now))
+        if seconds >= 86_400 {
+            let days = max(1, Int((seconds / 86_400).rounded()))
+            return "约\(days)天"
+        }
+        return countdown(to: reset, now: now)
+            .replacingOccurrences(of: "后重置", with: "")
     }
 }

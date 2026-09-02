@@ -16,10 +16,12 @@ final class OverlayPresentationTests: XCTestCase {
     func testSelectsLongestVariantThatFitsMeasuredWidths() {
         let expected: [(CGFloat, OverlayTextVariant)] = [
             (74, .minimal),
-            (90, .compact),
+            (90, .minimal),
+            (100, .compact),
             (130, .compact),
             (150, .compact),
-            (167, .full),
+            (170, .compact),
+            (171, .full),
             (180, .full),
         ]
 
@@ -36,9 +38,9 @@ final class OverlayPresentationTests: XCTestCase {
     }
 
     func testVariantsExposeFullCompactAndMinimalCopy() {
-        XCTAssertEqual(OverlayPresentation(state: state, variant: .full).visibleText, "Codex 63% · 3天后重置")
-        XCTAssertEqual(OverlayPresentation(state: state, variant: .compact).visibleText, "63% · 3天")
-        XCTAssertEqual(OverlayPresentation(state: state, variant: .minimal).visibleText, "63%")
+        XCTAssertEqual(OverlayPresentation(state: state, variant: .full).visibleText, "Codex 53% · 4天19小时")
+        XCTAssertEqual(OverlayPresentation(state: state, variant: .compact).visibleText, "53% · 约5天")
+        XCTAssertEqual(OverlayPresentation(state: state, variant: .minimal).visibleText, "53%")
         XCTAssertEqual(
             OverlayPresentation(state: .waiting, variant: .minimal).visibleText,
             "--"
@@ -46,7 +48,7 @@ final class OverlayPresentationTests: XCTestCase {
     }
 
     func testRealHostingViewFitsChosenWidthWithoutTruncatingVariant() {
-        for maximumWidth in [CGFloat(74), 90, 130, 150, 167, 180] {
+        for maximumWidth in [CGFloat(74), 90, 100, 130, 150, 170, 171, 180] {
             let layout = OverlayLayout.fitting(
                 state: state,
                 maximumWidth: maximumWidth,
@@ -62,18 +64,18 @@ final class OverlayPresentationTests: XCTestCase {
     }
 
     private let state = QuotaDisplayState(
-        remainingPercent: 63,
+        remainingPercent: 53,
         level: .normal,
-        pillText: "Codex 63% · 3天后重置",
-        compactText: "63% · 3天",
-        tooltipText: "已用 37%",
+        pillText: "Codex 53% · 4天19小时",
+        compactText: "53% · 约5天",
+        tooltipText: "已用 47%",
         isStale: false
     )
 
     private func measuredWidth(_ presentation: OverlayPresentation) -> CGFloat {
         switch presentation.variant {
-        case .full: 167
-        case .compact: 93
+        case .full: 171
+        case .compact: 105
         case .minimal: 60
         }
     }

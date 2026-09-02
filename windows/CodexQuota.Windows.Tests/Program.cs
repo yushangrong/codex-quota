@@ -33,11 +33,19 @@ static void TestFormatter()
     var display = QuotaFormatter.Display(snapshot, now);
     Equal<int?>(63, display.RemainingPercent, "remaining percentage");
     Equal(QuotaLevel.Normal, display.Level, "normal threshold");
-    Equal("Codex 63% · 3天后重置", display.PillText, "pill copy");
+    Equal("Codex 63% · 3天", display.PillText, "pill copy");
+    Equal("63% · 约3天", display.CompactText, "compact copy");
     Equal(QuotaLevel.Warning, QuotaFormatter.Level(30), "warning threshold");
     Equal(QuotaLevel.Warning, QuotaFormatter.Level(10), "warning lower boundary");
     Equal(QuotaLevel.Critical, QuotaFormatter.Level(9), "critical threshold");
     Equal("6小时后重置", QuotaFormatter.Countdown(now.AddHours(6), now), "hour countdown");
+
+    var detailed = snapshot with { UsedPercent = 47, ResetsAt = now.AddDays(4).AddHours(19) };
+    var detailedDisplay = QuotaFormatter.Display(detailed, now);
+    Equal("Codex 53% · 4天19小时", detailedDisplay.PillText, "detailed multi-day copy");
+    Equal("53% · 约5天", detailedDisplay.CompactText, "rounded compact day copy");
+    Equal("约4天", QuotaFormatter.CompactCountdown(now.AddDays(4).AddHours(11), now), "compact day rounds down");
+    Equal("约5天", QuotaFormatter.CompactCountdown(now.AddDays(4).AddHours(12), now), "compact day rounds up");
 
     var expired = snapshot with { ResetsAt = now };
     Equal("Codex -- · 等待刷新", QuotaFormatter.Display(expired, now).PillText, "expired window");
